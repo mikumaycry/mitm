@@ -62,6 +62,7 @@ func NewProxy(config Config) *Proxy {
 			TLSHandshakeTimeout:   tlsHandshakeTimeout,
 			ExpectContinueTimeout: time.Second,
 			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
 				GetClientCertificate: func(info *tls.CertificateRequestInfo) (certificate *tls.Certificate, e error) {
 					// We purposefully cause an error here so that the http.Transport.RoundTrip method failed
 					// In this case we'll receive the error and will be able to add the host to invalidTLSHosts
@@ -380,7 +381,8 @@ func (p *Proxy) handleTunnel(session *Session) error {
 	// if we're inside a MITMed connection, we should open a TLS connection instead
 	if session.ctx.IsMITM() {
 		tlsConn := tls.Client(conn, &tls.Config{
-			ServerName: session.req.URL.Host,
+			ServerName:         session.req.URL.Host,
+			InsecureSkipVerify: true,
 			GetClientCertificate: func(info *tls.CertificateRequestInfo) (certificate *tls.Certificate, e error) {
 				// We purposefully cause an error here so that the http.Transport.RoundTrip method failed
 				// In this case we'll receive the error and will be able to add the host to invalidTLSHosts
@@ -589,11 +591,11 @@ func (p *Proxy) writeResponse(session *Session) error {
 
 // connect opens a network connection to the specified remote address
 // this method can be called in two cases:
-// 1. When the proxy handles the HTTP CONNECT.
-//    IMPORTANT: In this case we don't actually use the remote connections.
-//    It is only used to check if the remote endpoint is available
-// 2. When the proxy bypasses data from the client to the remote endpoint.
-//    For instance, it could happen when there's a WebSocket connection.
+//  1. When the proxy handles the HTTP CONNECT.
+//     IMPORTANT: In this case we don't actually use the remote connections.
+//     It is only used to check if the remote endpoint is available
+//  2. When the proxy bypasses data from the client to the remote endpoint.
+//     For instance, it could happen when there's a WebSocket connection.
 func (p *Proxy) connect(session *Session, proto string, addr string) (net.Conn, error) {
 	log.Debug("id=%s: connecting to %s://%s", session.ID(), proto, addr)
 
