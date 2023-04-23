@@ -37,7 +37,7 @@ func main() {
 	proxy := gomitmproxy.NewProxy(gomitmproxy.Config{
 		ListenAddr: &net.TCPAddr{
 			IP:   net.IPv4(127, 0, 0, 1),
-			Port: 2086,
+			Port: 2084,
 		},
 		MITMConfig: mitmConfig,
 	})
